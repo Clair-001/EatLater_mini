@@ -1,0 +1,29 @@
+{
+    "name": "eatlater-mini-program",
+    "version": "1.0.0",
+    "description": "EatLater 冲动饮食干预微信小程序",
+    "main": "main.js",
+    "scripts": {
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:coverage": "jest --coverage",
+        "dev": "uni build --watch",
+        "build": "uni build",
+        "build:mp-weixin": "uni build -p mp-weixin"
+    },
+    "keywords": [
+        "miniprogram",
+        "wechat",
+        "intervention",
+        "eating",
+        "health"
+    ],
+    "author": "EatLater Team",
+    "license": "MIT",
+    "devDependencies": {
+        "jest": "^29.7.0",
+        "@babel/core": "^7.23.0",
+        "@babel/preset-env": "^7.23.0",
+        "babel-jest": "^29.7.0"
+    }
+}
