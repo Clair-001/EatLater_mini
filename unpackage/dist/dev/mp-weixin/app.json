@@ -1,0 +1,25 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "EatLater",
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundColor": "#f8f8f8",
+    "backgroundTextStyle": "dark",
+    "enablePullDownRefresh": false,
+    "onReachBottomDistance": 50
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于提供更好的用户体验"
+    }
+  },
+  "requiredBackgroundModes": [],
+  "plugins": {},
+  "resizable": true,
+  "navigateToMiniProgramAppIdList": [],
+  "lazyCodeLoading": "requiredComponents",
+  "usingComponents": {}
+}

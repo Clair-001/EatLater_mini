@@ -1,0 +1,19 @@
+# 图片资源目录
+
+此目录用于存放反差视觉图片资源。
+
+## 图片命名规范
+
+- `pizza_unappetizing.jpg` - 披萨反差视觉图片
+- `chicken_unappetizing.jpg` - 炸鸡反差视觉图片  
+- `milktea_unappetizing.jpg` - 奶茶反差视觉图片
+- `cake_unappetizing.jpg` - 蛋糕反差视觉图片
+- `fries_unappetizing.jpg` - 薯条反差视觉图片
+- `default_unappetizing.jpg` - 默认反差视觉图片
+
+## 图片要求
+
+- 格式：JPG 或 PNG
+- 尺寸：建议 400x300 像素
+- 特征：冷色调、变质感、违和感
+- 合规：不包含血腥、呕吐、人体病变内容

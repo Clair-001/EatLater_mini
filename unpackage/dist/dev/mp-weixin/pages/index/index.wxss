@@ -1,0 +1,218 @@
+
+	/* 容器样式 */
+.container {
+		min-height: 100vh;
+		background-color: #f8f9fa;
+		padding: 40rpx 30rpx;
+		box-sizing: border-box;
+}
+
+	/* 加载状态样式 */
+.loading-container {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		height: 60vh;
+}
+.loading-text {
+		font-size: 32rpx;
+		color: #666;
+}
+
+	/* 输入界面样式 */
+.input-container {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+}
+.header {
+		text-align: center;
+		margin-bottom: 80rpx;
+}
+.app-title {
+		display: block;
+		font-size: 48rpx;
+		font-weight: bold;
+		color: #2c3e50;
+		margin-bottom: 20rpx;
+}
+.app-subtitle {
+		display: block;
+		font-size: 28rpx;
+		color: #7f8c8d;
+}
+
+	/* 输入区域样式 */
+.input-section {
+		width: 100%;
+		margin-bottom: 60rpx;
+}
+.input-label {
+		display: block;
+		font-size: 32rpx;
+		color: #34495e;
+		margin-bottom: 30rpx;
+		text-align: center;
+}
+.food-input {
+		width: 100%;
+		height: 80rpx;
+		border: 2rpx solid #ddd;
+		border-radius: 12rpx;
+		padding: 0 30rpx;
+		font-size: 30rpx;
+		background-color: #fff;
+		box-sizing: border-box;
+}
+.food-input:focus {
+		border-color: #3498db;
+		outline: none;
+}
+.error-message {
+		display: block;
+		color: #e74c3c;
+		font-size: 26rpx;
+		margin-top: 20rpx;
+		text-align: center;
+}
+
+	/* 快捷按钮区域样式 */
+.quick-buttons-section {
+		width: 100%;
+}
+.quick-buttons-label {
+		display: block;
+		font-size: 28rpx;
+		color: #7f8c8d;
+		margin-bottom: 30rpx;
+		text-align: center;
+}
+.quick-buttons-grid {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 20rpx;
+}
+.quick-button {
+		background-color: #ecf0f1;
+		border: none;
+		border-radius: 25rpx;
+		padding: 20rpx 30rpx;
+		font-size: 28rpx;
+		color: #2c3e50;
+		min-width: 120rpx;
+}
+.quick-button:active {
+		background-color: #bdc3c7;
+}
+
+	/* 干预内容显示样式 */
+.content-container {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		height: 100vh;
+		justify-content: space-between;
+}
+.image-section {
+		flex: 1;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		width: 100%;
+		margin-bottom: 40rpx;
+}
+.intervention-image {
+		width: 90%;
+		max-height: 400rpx;
+		border-radius: 12rpx;
+}
+.image-placeholder {
+		width: 90%;
+		height: 400rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background-color: #ecf0f1;
+		border-radius: 12rpx;
+		border: 2rpx dashed #bdc3c7;
+}
+.placeholder-text {
+		color: #7f8c8d;
+		font-size: 28rpx;
+}
+.text-section {
+		padding: 40rpx 20rpx;
+		text-align: center;
+}
+.guidance-text {
+		font-size: 36rpx;
+		color: #2c3e50;
+		line-height: 1.6;
+		font-weight: 500;
+}
+
+	/* 退出区域样式 */
+.exit-section {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		gap: 20rpx;
+		padding-bottom: 40rpx;
+}
+.exit-button {
+		background-color: #27ae60;
+		color: white;
+		border: none;
+		border-radius: 12rpx;
+		padding: 30rpx;
+		font-size: 32rpx;
+		width: 100%;
+}
+.exit-button:active {
+		background-color: #229954;
+}
+.restart-button {
+		background-color: #95a5a6;
+		color: white;
+		border: none;
+		border-radius: 12rpx;
+		padding: 25rpx;
+		font-size: 28rpx;
+		width: 100%;
+}
+.restart-button:active {
+		background-color: #7f8c8d;
+}
+
+	/* 完成状态样式 */
+.completed-container {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		height: 60vh;
+		gap: 40rpx;
+}
+.completed-text {
+		font-size: 36rpx;
+		color: #2c3e50;
+		text-align: center;
+}
+	
+	/* 手势提示样式 */
+.gesture-hint {
+		position: fixed;
+		bottom: 20rpx;
+		left: 50%;
+		transform: translateX(-50%);
+		background-color: rgba(0, 0, 0, 0.6);
+		border-radius: 20rpx;
+		padding: 10rpx 20rpx;
+		z-index: 1000;
+}
+.hint-text {
+		color: white;
+		font-size: 24rpx;
+		opacity: 0.8;
+}
