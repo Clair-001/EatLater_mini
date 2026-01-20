@@ -27,7 +27,8 @@ export class InterventionViewModel {
         this.eventListeners = {
             stateChanged: [],
             contentReady: [],
-            error: []
+            error: [],
+            userExit: []
         };
 
         // 初始化
@@ -55,6 +56,12 @@ export class InterventionViewModel {
         try {
             // 清除之前的错误信息
             this.clearError();
+
+            // 基本输入验证
+            if (!foodName || typeof foodName !== 'string') {
+                this.setError('请输入您想吃的食物');
+                return false;
+            }
 
             // 创建食物输入对象
             const foodInput = new FoodInput(foodName);
@@ -90,9 +97,21 @@ export class InterventionViewModel {
 
         const cleanName = foodInput.getCleanName();
 
+        // 检查是否为空或只包含空白字符
+        if (!cleanName || cleanName.length === 0) {
+            this.setError('请输入您想吃的食物');
+            return false;
+        }
+
         // 检查长度限制
         if (cleanName.length > 50) {
             this.setError('食物名称过长，请输入50个字符以内');
+            return false;
+        }
+
+        // 检查最小长度
+        if (cleanName.length < 1) {
+            this.setError('食物名称过短');
             return false;
         }
 
@@ -100,6 +119,13 @@ export class InterventionViewModel {
         const invalidChars = /[<>\"'&]/;
         if (invalidChars.test(cleanName)) {
             this.setError('食物名称包含无效字符');
+            return false;
+        }
+
+        // 检查是否只包含数字
+        const onlyNumbers = /^\d+$/;
+        if (onlyNumbers.test(cleanName)) {
+            this.setError('请输入有效的食物名称');
             return false;
         }
 
@@ -119,6 +145,19 @@ export class InterventionViewModel {
                 throw new Error('获取的干预内容不完整');
             }
 
+            // 验证内容的有效性
+            if (!content.imageResource || !content.guidanceText) {
+                console.warn('干预内容缺少必要信息，使用默认内容');
+
+                // 使用默认内容补充
+                if (!content.imageResource) {
+                    content.imageResource = this.repository.imageLibrary.getDefaultImage();
+                }
+                if (!content.guidanceText) {
+                    content.guidanceText = this.repository.textLibrary.getDefaultText();
+                }
+            }
+
             // 保存内容
             this.currentContent = content;
 
@@ -128,9 +167,42 @@ export class InterventionViewModel {
             // 触发内容准备事件
             this.emitEvent('contentReady', content);
 
+            console.log('干预内容加载成功:', {
+                food: content.foodName,
+                hasImage: !!content.imageResource,
+                hasText: !!content.guidanceText
+            });
+
         } catch (error) {
             this.handleError('加载干预内容失败', error);
+
+            // 尝试使用默认内容
+            try {
+                const defaultContent = await this.createDefaultContent(foodInput);
+                this.currentContent = defaultContent;
+                this.transitionToState(InterventionState.CONTENT_DISPLAYED);
+                this.emitEvent('contentReady', defaultContent);
+            } catch (defaultError) {
+                console.error('创建默认内容也失败:', defaultError);
+                // 回到输入状态
+                this.transitionToState(InterventionState.INPUT_READY);
+            }
         }
+    }
+
+    /**
+     * 创建默认干预内容
+     * @param {FoodInput} foodInput - 食物输入对象
+     * @returns {Promise<InterventionContent>} 默认干预内容
+     */
+    async createDefaultContent(foodInput) {
+        const { InterventionContent } = await import('../models/InterventionContent.js');
+
+        return new InterventionContent(
+            '/static/images/default_unappetizing.jpg',
+            '先缓一缓，现在不急，晚点再决定',
+            foodInput ? foodInput.getCleanName() : '未知食物'
+        );
     }
 
     /**
@@ -139,7 +211,25 @@ export class InterventionViewModel {
      * @returns {Promise<boolean>} 处理是否成功
      */
     async handleQuickSelectFood(foodName) {
-        return await this.handleFoodInput(foodName);
+        try {
+            // 验证快捷选择的食物名称
+            if (!foodName || typeof foodName !== 'string') {
+                this.setError('无效的食物选择');
+                return false;
+            }
+
+            const cleanFoodName = foodName.trim();
+            if (!cleanFoodName) {
+                this.setError('无效的食物选择');
+                return false;
+            }
+
+            // 调用通用的食物输入处理方法
+            return await this.handleFoodInput(cleanFoodName);
+        } catch (error) {
+            this.handleError('处理快捷选择失败', error);
+            return false;
+        }
     }
 
     /**
@@ -155,11 +245,19 @@ export class InterventionViewModel {
      */
     handleExit() {
         try {
+            console.log('用户选择退出干预');
+
             // 清理会话数据
             this.clearSessionData();
 
             // 转换到完成状态
             this.transitionToState(InterventionState.COMPLETED);
+
+            // 触发退出事件
+            this.emitEvent('userExit', {
+                exitTime: Date.now(),
+                foodName: this.currentFoodInput ? this.currentFoodInput.getCleanName() : null
+            });
 
         } catch (error) {
             this.handleError('退出处理失败', error);

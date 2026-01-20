@@ -22,7 +22,9 @@
 					placeholder="请输入食物名称"
 					@confirm="handleInputConfirm"
 					@input="clearError"
+					@blur="handleInputBlur"
 					maxlength="50"
+					confirm-type="done"
 				/>
 				
 				<!-- 错误提示 -->
@@ -55,13 +57,20 @@
 					class="intervention-image"
 					mode="aspectFit"
 					@error="handleImageError"
+					@load="handleImageLoad"
 				/>
+				<view v-else class="image-placeholder">
+					<text class="placeholder-text">图片加载中...</text>
+				</view>
 			</view>
 
 			<!-- 文案显示区域 -->
 			<view class="text-section">
 				<text v-if="currentContent && currentContent.guidanceText" class="guidance-text">
 					{{ currentContent.guidanceText }}
+				</text>
+				<text v-else class="guidance-text">
+					先缓一缓，现在不急，晚点再决定
 				</text>
 			</view>
 
@@ -127,6 +136,9 @@
 			 */
 			async initializeViewModel() {
 				try {
+					// 设置加载状态
+					this.currentState = InterventionState.LOADING;
+					
 					// 创建 ViewModel 实例
 					this.viewModel = new InterventionViewModel();
 					
@@ -139,9 +151,13 @@
 					// 等待初始化完成
 					await this.$nextTick();
 					
+					// 设置为输入准备状态
+					this.currentState = InterventionState.INPUT_READY;
+					
 				} catch (error) {
 					console.error('初始化 ViewModel 失败:', error);
 					this.errorMessage = '应用初始化失败，请重试';
+					this.currentState = InterventionState.INPUT_READY;
 				}
 			},
 			
@@ -181,17 +197,52 @@
 			 * 处理输入确认
 			 */
 			async handleInputConfirm() {
-				if (!this.viewModel) return;
+				if (!this.viewModel) {
+					this.errorMessage = '系统未初始化，请重试';
+					return;
+				}
+				
+				// 清除之前的错误信息
+				this.clearError();
 				
 				const foodName = this.foodInputText.trim();
+				
+				// 基本输入验证
 				if (!foodName) {
 					this.errorMessage = '请输入您想吃的食物';
 					return;
 				}
 				
-				const success = await this.viewModel.handleFoodInput(foodName);
-				if (success) {
-					this.foodInputText = '';
+				if (foodName.length > 50) {
+					this.errorMessage = '食物名称过长，请输入50个字符以内';
+					return;
+				}
+				
+				// 检查特殊字符
+				const invalidChars = /[<>\"'&]/;
+				if (invalidChars.test(foodName)) {
+					this.errorMessage = '食物名称包含无效字符';
+					return;
+				}
+				
+				try {
+					// 显示加载状态
+					this.currentState = 'loading';
+					
+					// 调用 ViewModel 处理输入
+					const success = await this.viewModel.handleFoodInput(foodName);
+					
+					if (success) {
+						// 清空输入框
+						this.foodInputText = '';
+					} else {
+						// 如果处理失败，恢复到输入状态
+						this.currentState = 'inputReady';
+					}
+				} catch (error) {
+					console.error('处理食物输入时发生错误:', error);
+					this.errorMessage = '处理输入时发生错误，请重试';
+					this.currentState = 'inputReady';
 				}
 			},
 			
@@ -199,11 +250,41 @@
 			 * 处理快捷选择
 			 */
 			async handleQuickSelect(foodName) {
-				if (!this.viewModel) return;
+				if (!this.viewModel) {
+					this.errorMessage = '系统未初始化，请重试';
+					return;
+				}
 				
-				const success = await this.viewModel.handleQuickSelectFood(foodName);
-				if (success) {
-					this.foodInputText = '';
+				// 清除之前的错误信息
+				this.clearError();
+				
+				// 验证快捷选择的食物名称
+				if (!foodName || typeof foodName !== 'string') {
+					this.errorMessage = '无效的食物选择';
+					return;
+				}
+				
+				try {
+					// 显示加载状态
+					this.currentState = 'loading';
+					
+					// 设置输入框内容（用于用户查看）
+					this.foodInputText = foodName;
+					
+					// 调用 ViewModel 处理快捷选择
+					const success = await this.viewModel.handleQuickSelectFood(foodName);
+					
+					if (success) {
+						// 清空输入框
+						this.foodInputText = '';
+					} else {
+						// 如果处理失败，恢复到输入状态
+						this.currentState = 'inputReady';
+					}
+				} catch (error) {
+					console.error('处理快捷选择时发生错误:', error);
+					this.errorMessage = '处理选择时发生错误，请重试';
+					this.currentState = 'inputReady';
 				}
 			},
 			
@@ -211,24 +292,59 @@
 			 * 处理退出
 			 */
 			handleExit() {
-				if (!this.viewModel) return;
+				if (!this.viewModel) {
+					console.error('ViewModel 未初始化');
+					return;
+				}
 				
-				this.viewModel.handleExit();
+				try {
+					// 调用 ViewModel 的退出处理
+					this.viewModel.handleExit();
+					
+					// 清理界面状态
+					this.foodInputText = '';
+					this.currentContent = null;
+					this.clearError();
+					
+				} catch (error) {
+					console.error('处理退出时发生错误:', error);
+					this.errorMessage = '退出时发生错误';
+				}
 			},
 			
 			/**
 			 * 处理重新开始
 			 */
 			handleRestart() {
-				if (!this.viewModel) return;
+				if (!this.viewModel) {
+					console.error('ViewModel 未初始化');
+					return;
+				}
 				
-				// 清理界面状态
-				this.foodInputText = '';
-				this.currentContent = null;
-				this.clearError();
-				
-				// 重置 ViewModel
-				this.viewModel.reset();
+				try {
+					// 清理界面状态
+					this.foodInputText = '';
+					this.currentContent = null;
+					this.clearError();
+					
+					// 重置 ViewModel
+					this.viewModel.reset();
+					
+				} catch (error) {
+					console.error('处理重新开始时发生错误:', error);
+					this.errorMessage = '重新开始时发生错误';
+					
+					// 强制回到输入状态
+					this.currentState = InterventionState.INPUT_READY;
+				}
+			},
+			
+			/**
+			 * 处理输入失焦
+			 */
+			handleInputBlur() {
+				// 输入失焦时不自动提交，让用户主动确认
+				// 这里可以添加其他失焦处理逻辑
 			},
 			
 			/**
@@ -246,7 +362,26 @@
 			 */
 			handleImageError(error) {
 				console.error('图片加载失败:', error);
-				// 这里可以设置默认图片或显示错误提示
+				
+				// 尝试使用默认图片
+				if (this.viewModel && this.currentContent) {
+					// 获取默认图片路径
+					const defaultImage = '/static/images/default_unappetizing.jpg';
+					
+					// 更新当前内容的图片资源
+					this.currentContent.imageResource = defaultImage;
+					
+					// 可以显示错误提示
+					// this.errorMessage = '图片加载失败，已使用默认图片';
+				}
+			},
+			
+			/**
+			 * 处理图片加载成功
+			 */
+			handleImageLoad() {
+				// 图片加载成功，可以添加一些处理逻辑
+				console.log('图片加载成功');
 			}
 		}
 	}
@@ -394,6 +529,22 @@
 		width: 90%;
 		max-height: 400rpx;
 		border-radius: 12rpx;
+	}
+
+	.image-placeholder {
+		width: 90%;
+		height: 400rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background-color: #ecf0f1;
+		border-radius: 12rpx;
+		border: 2rpx dashed #bdc3c7;
+	}
+
+	.placeholder-text {
+		color: #7f8c8d;
+		font-size: 28rpx;
 	}
 
 	.text-section {
