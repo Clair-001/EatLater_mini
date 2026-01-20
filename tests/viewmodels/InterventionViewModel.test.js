@@ -106,7 +106,7 @@ describe('InterventionViewModel 测试', () => {
             // 执行退出
             viewModel.handleExit();
 
-            expect(viewModel.getCurrentState()).toBe(InterventionState.COMPLETED);
+            // 退出后应该清理会话数据，但不改变状态（由UI层处理应用关闭）
             expect(viewModel.getCurrentContent()).toBeNull();
             expect(viewModel.getCurrentFoodInput()).toBeNull();
             expect(viewModel.hasError()).toBe(false);

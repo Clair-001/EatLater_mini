@@ -104,4 +104,81 @@ export class InterventionRepository {
         this.quickSelectFoods = [];
         this.initialize();
     }
+
+    /**
+     * 清理缓存数据
+     * 清理临时缓存，但保留核心配置
+     */
+    clearCache() {
+        try {
+            console.log('清理数据仓库缓存');
+
+            // 清理图片库缓存
+            if (this.imageLibrary && typeof this.imageLibrary.clearCache === 'function') {
+                this.imageLibrary.clearCache();
+            }
+
+            // 清理文案库缓存
+            if (this.textLibrary && typeof this.textLibrary.clearCache === 'function') {
+                this.textLibrary.clearCache();
+            }
+
+            // 清理临时存储的内容缓存
+            this.clearTemporaryContentCache();
+
+            console.log('数据仓库缓存清理完成');
+
+        } catch (error) {
+            console.error('清理数据仓库缓存时发生错误:', error);
+        }
+    }
+
+    /**
+     * 清理临时内容缓存
+     */
+    clearTemporaryContentCache() {
+        try {
+            // 清理可能存在的临时内容缓存
+            const tempCacheKeys = [
+                'lastInterventionContent',
+                'recentFoodInputs',
+                'imageLoadCache',
+                'textSelectionCache'
+            ];
+
+            tempCacheKeys.forEach(key => {
+                try {
+                    if (typeof uni !== 'undefined' && uni.removeStorageSync) {
+                        uni.removeStorageSync(key);
+                    }
+                } catch (error) {
+                    console.warn(`清理内容缓存失败: ${key}`, error);
+                }
+            });
+
+        } catch (error) {
+            console.error('清理临时内容缓存时发生错误:', error);
+        }
+    }
+
+    /**
+     * 深度清理所有数据
+     * 包括配置和缓存
+     */
+    deepClean() {
+        try {
+            console.log('深度清理数据仓库');
+
+            // 清理缓存
+            this.clearCache();
+
+            // 重置到初始状态
+            this.reset();
+
+            console.log('数据仓库深度清理完成');
+
+        } catch (error) {
+            console.error('深度清理数据仓库时发生错误:', error);
+        }
+    }
 }

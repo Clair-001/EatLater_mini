@@ -88,4 +88,36 @@ export class TextLibrary {
         this.guidanceTexts = [];
         this.initializeDefaultTexts();
     }
+
+    /**
+     * 清理缓存
+     * 清理可能存在的临时缓存数据
+     */
+    clearCache() {
+        try {
+            console.log('清理文案库缓存');
+
+            // 清理可能存在的文案选择缓存
+            const cacheKeys = [
+                'lastSelectedText',
+                'textSelectionHistory',
+                'recentTexts'
+            ];
+
+            cacheKeys.forEach(key => {
+                try {
+                    if (typeof uni !== 'undefined' && uni.removeStorageSync) {
+                        uni.removeStorageSync(key);
+                    }
+                } catch (error) {
+                    console.warn(`清理文案缓存失败: ${key}`, error);
+                }
+            });
+
+            console.log('文案库缓存清理完成');
+
+        } catch (error) {
+            console.error('清理文案库缓存时发生错误:', error);
+        }
+    }
 }

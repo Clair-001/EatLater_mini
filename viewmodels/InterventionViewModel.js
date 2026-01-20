@@ -247,17 +247,24 @@ export class InterventionViewModel {
         try {
             console.log('用户选择退出干预');
 
+            // 记录退出事件（用于统计，不强制用户）
+            const exitData = {
+                exitTime: Date.now(),
+                foodName: this.currentFoodInput ? this.currentFoodInput.getCleanName() : null,
+                stateAtExit: this.getCurrentState(),
+                sessionDuration: this.calculateSessionDuration()
+            };
+
             // 清理会话数据
             this.clearSessionData();
 
-            // 转换到完成状态
-            this.transitionToState(InterventionState.COMPLETED);
+            // 不转换到完成状态，而是直接准备退出
+            // 这样避免显示额外的界面或推荐
 
             // 触发退出事件
-            this.emitEvent('userExit', {
-                exitTime: Date.now(),
-                foodName: this.currentFoodInput ? this.currentFoodInput.getCleanName() : null
-            });
+            this.emitEvent('userExit', exitData);
+
+            console.log('退出处理完成，准备关闭应用');
 
         } catch (error) {
             this.handleError('退出处理失败', error);
@@ -265,18 +272,28 @@ export class InterventionViewModel {
     }
 
     /**
+     * 计算会话持续时间
+     * @returns {number} 会话持续时间（毫秒）
+     */
+    calculateSessionDuration() {
+        if (this.currentFoodInput && this.currentFoodInput.timestamp) {
+            return Date.now() - this.currentFoodInput.timestamp;
+        }
+        return 0;
+    }
+
+    /**
      * 重置应用状态
      */
     reset() {
         try {
-            // 清理会话数据
-            this.clearSessionData();
+            console.log('重置应用状态');
 
-            // 重置状态管理器
-            this.stateManager.reset();
+            // 深度清理会话数据
+            this.deepCleanSessionData();
 
-            // 重新初始化
-            this.initialize();
+            // 准备下次使用
+            this.prepareForNextUse();
 
         } catch (error) {
             this.handleError('重置失败', error);
@@ -285,11 +302,214 @@ export class InterventionViewModel {
 
     /**
      * 清理会话数据
+     * 清除临时输入数据、重置应用状态、准备下次使用
      */
     clearSessionData() {
-        this.currentContent = null;
-        this.currentFoodInput = null;
-        this.clearError();
+        try {
+            console.log('开始清理会话数据');
+
+            // 清理当前内容
+            this.currentContent = null;
+
+            // 清理当前食物输入
+            this.currentFoodInput = null;
+
+            // 清理错误信息
+            this.clearError();
+
+            // 清理本地存储中的临时数据
+            this.clearTemporaryStorage();
+
+            // 重置状态管理器
+            if (this.stateManager) {
+                this.stateManager.reset();
+            }
+
+            // 清理事件监听器中的临时数据
+            this.clearEventListenerData();
+
+            console.log('会话数据清理完成');
+
+        } catch (error) {
+            console.error('清理会话数据时发生错误:', error);
+        }
+    }
+
+    /**
+     * 清理临时存储数据
+     */
+    clearTemporaryStorage() {
+        try {
+            // 定义需要清理的临时存储键
+            const temporaryKeys = [
+                'currentSession',
+                'tempFoodInput',
+                'lastInterventionContent',
+                'sessionStartTime',
+                'userInputHistory',
+                'tempImageCache',
+                'tempTextCache'
+            ];
+
+            // 清理每个临时存储项
+            temporaryKeys.forEach(key => {
+                try {
+                    if (typeof uni !== 'undefined' && uni.removeStorageSync) {
+                        uni.removeStorageSync(key);
+                        console.log(`已清理存储项: ${key}`);
+                    }
+                } catch (error) {
+                    console.warn(`清理存储项失败: ${key}`, error);
+                }
+            });
+
+        } catch (error) {
+            console.error('清理临时存储时发生错误:', error);
+        }
+    }
+
+    /**
+     * 清理事件监听器中的临时数据
+     */
+    clearEventListenerData() {
+        try {
+            // 清理事件监听器数组中的临时引用
+            Object.keys(this.eventListeners).forEach(eventType => {
+                // 保留事件监听器数组结构，但可以清理其中的临时数据
+                // 这里不清理监听器本身，因为它们可能在下次使用时需要
+            });
+
+        } catch (error) {
+            console.error('清理事件监听器数据时发生错误:', error);
+        }
+    }
+
+    /**
+     * 深度清理所有数据
+     * 用于应用完全重置或退出时
+     */
+    deepCleanSessionData() {
+        try {
+            console.log('开始深度清理会话数据');
+
+            // 执行标准清理
+            this.clearSessionData();
+
+            // 清理数据仓库缓存
+            if (this.repository) {
+                if (typeof this.repository.clearCache === 'function') {
+                    this.repository.clearCache();
+                }
+            }
+
+            // 清理所有事件监听器
+            this.removeAllEventListeners();
+
+            // 清理更多的存储项
+            this.clearAllTemporaryStorage();
+
+            console.log('深度清理完成');
+
+        } catch (error) {
+            console.error('深度清理时发生错误:', error);
+        }
+    }
+
+    /**
+     * 清理所有临时存储
+     */
+    clearAllTemporaryStorage() {
+        try {
+            // 获取所有存储键
+            if (typeof uni !== 'undefined' && uni.getStorageInfoSync) {
+                const storageInfo = uni.getStorageInfoSync();
+                const allKeys = storageInfo.keys || [];
+
+                // 定义需要保留的持久化数据键
+                const persistentKeys = [
+                    'userPreferences',
+                    'appVersion',
+                    'installTime',
+                    'userSettings'
+                ];
+
+                // 清理所有非持久化数据
+                allKeys.forEach(key => {
+                    if (!persistentKeys.includes(key)) {
+                        try {
+                            uni.removeStorageSync(key);
+                            console.log(`已清理存储项: ${key}`);
+                        } catch (error) {
+                            console.warn(`清理存储项失败: ${key}`, error);
+                        }
+                    }
+                });
+            }
+
+        } catch (error) {
+            console.error('清理所有临时存储时发生错误:', error);
+        }
+    }
+
+    /**
+     * 移除所有事件监听器
+     */
+    removeAllEventListeners() {
+        try {
+            Object.keys(this.eventListeners).forEach(eventType => {
+                this.eventListeners[eventType] = [];
+            });
+            console.log('所有事件监听器已清理');
+        } catch (error) {
+            console.error('清理事件监听器时发生错误:', error);
+        }
+    }
+
+    /**
+     * 准备下次使用
+     * 重置必要的状态，但保留配置
+     */
+    prepareForNextUse() {
+        try {
+            console.log('准备应用下次使用');
+
+            // 清理会话数据
+            this.clearSessionData();
+
+            // 重新初始化状态管理器
+            if (this.stateManager) {
+                this.stateManager.reset();
+            }
+
+            // 重置到初始状态
+            this.transitionToState(InterventionState.INPUT_READY);
+
+            // 预加载必要资源（如果需要）
+            this.preloadEssentialResources();
+
+            console.log('应用已准备好下次使用');
+
+        } catch (error) {
+            console.error('准备下次使用时发生错误:', error);
+        }
+    }
+
+    /**
+     * 预加载必要资源
+     */
+    preloadEssentialResources() {
+        try {
+            // 这里可以预加载一些关键资源
+            // 比如默认图片、常用文案等
+
+            // 预加载快捷选择食物列表
+            if (this.repository) {
+                this.repository.getQuickSelectFoods();
+            }
+
+        } catch (error) {
+            console.error('预加载资源时发生错误:', error);
+        }
     }
 
     /**

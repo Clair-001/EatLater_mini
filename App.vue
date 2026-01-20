@@ -213,11 +213,53 @@
 			// 清理用户状态
 			clearUserState() {
 				try {
-					this.globalData.userState = null
-					uni.removeStorageSync('lastUserState')
-					console.log('用户状态已清理')
+					this.globalData.userState = null;
+					
+					// 清理所有临时存储数据
+					const tempKeys = ['lastUserState', 'currentSession', 'tempFoodInput'];
+					tempKeys.forEach(key => {
+						try {
+							uni.removeStorageSync(key);
+						} catch (error) {
+							console.warn(`清理存储项失败: ${key}`, error);
+						}
+					});
+					
+					console.log('用户状态已清理');
 				} catch (error) {
-					console.error('清理用户状态失败:', error)
+					console.error('清理用户状态失败:', error);
+				}
+			},
+			
+			/**
+			 * 处理应用退出
+			 * 提供给页面调用的退出处理方法
+			 */
+			handleAppExit() {
+				try {
+					console.log('处理应用退出');
+					
+					// 清理所有状态
+					this.clearUserState();
+					
+					// 清理全局数据
+					this.globalData.userState = null;
+					this.globalData.lastActiveTime = Date.now();
+					
+					// 尝试关闭小程序
+					if (typeof wx !== 'undefined' && wx.exitMiniProgram) {
+						wx.exitMiniProgram({
+							success: () => {
+								console.log('小程序退出成功');
+							},
+							fail: (error) => {
+								console.warn('小程序退出失败:', error);
+							}
+						});
+					}
+					
+				} catch (error) {
+					console.error('应用退出处理失败:', error);
 				}
 			},
 			

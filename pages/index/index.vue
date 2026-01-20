@@ -48,7 +48,7 @@
 		</view>
 
 		<!-- 干预内容显示界面 -->
-		<view v-else-if="currentState === 'contentDisplayed'" class="content-container">
+		<view v-else-if="currentState === 'contentDisplayed'" class="content-container" @touchstart="handleTouchStart" @touchend="handleTouchEnd">
 			<!-- 图片显示区域 -->
 			<view class="image-section">
 				<image 
@@ -82,6 +82,11 @@
 				<button class="restart-button" @click="handleRestart">
 					重新选择
 				</button>
+			</view>
+			
+			<!-- 手势提示 -->
+			<view class="gesture-hint">
+				<text class="hint-text">向下滑动也可以退出</text>
 			</view>
 		</view>
 
@@ -118,7 +123,11 @@
 				currentContent: null,
 				
 				// 错误信息
-				errorMessage: ''
+				errorMessage: '',
+				
+				// 手势相关
+				touchStartY: 0,
+				touchStartTime: 0
 			}
 		},
 		
@@ -127,7 +136,9 @@
 		},
 		
 		onUnload() {
+			console.log('页面卸载，开始清理');
 			this.cleanupViewModel();
+			this.clearLocalTemporaryData();
 		},
 		
 		methods: {
@@ -187,9 +198,23 @@
 			 * 清理 ViewModel
 			 */
 			cleanupViewModel() {
-				if (this.viewModel) {
-					// 这里可以添加清理逻辑，如移除事件监听器
-					this.viewModel = null;
+				try {
+					if (this.viewModel) {
+						console.log('清理 ViewModel');
+						
+						// 深度清理会话数据
+						this.viewModel.deepCleanSessionData();
+						
+						// 移除所有事件监听器
+						this.viewModel.removeAllEventListeners();
+						
+						// 清空 ViewModel 引用
+						this.viewModel = null;
+					}
+					
+					console.log('ViewModel 清理完成');
+				} catch (error) {
+					console.error('清理 ViewModel 时发生错误:', error);
 				}
 			},
 			
@@ -306,9 +331,147 @@
 					this.currentContent = null;
 					this.clearError();
 					
+					// 实现自然退出 - 直接关闭小程序
+					this.exitApplication();
+					
 				} catch (error) {
 					console.error('处理退出时发生错误:', error);
 					this.errorMessage = '退出时发生错误';
+				}
+			},
+			
+			/**
+			 * 退出应用程序
+			 * 实现自然退出功能，直接关闭小程序
+			 */
+			exitApplication() {
+				try {
+					// 显示简短的退出提示
+					uni.showToast({
+						title: '感谢使用',
+						icon: 'none',
+						duration: 1000,
+						mask: false
+					});
+					
+					// 延迟关闭，让用户看到提示
+					setTimeout(() => {
+						// 调用 App 的退出处理方法
+						const app = getApp();
+						if (app && app.handleAppExit) {
+							app.handleAppExit();
+						} else {
+							// 直接尝试关闭小程序
+							if (typeof wx !== 'undefined' && wx.exitMiniProgram) {
+								wx.exitMiniProgram({
+									success: () => {
+										console.log('小程序已关闭');
+									},
+									fail: (error) => {
+										console.warn('关闭小程序失败，使用备用方案:', error);
+										this.fallbackExit();
+									}
+								});
+							} else {
+								this.fallbackExit();
+							}
+						}
+					}, 1000);
+					
+				} catch (error) {
+					console.error('退出应用时发生错误:', error);
+					this.fallbackExit();
+				}
+			},
+			
+			/**
+			 * 备用退出方案
+			 * 当无法直接关闭小程序时的处理
+			 */
+			fallbackExit() {
+				try {
+					// 清理所有状态
+					this.cleanupAllState();
+					
+					// 导航到一个简单的退出页面或重新启动
+					uni.reLaunch({
+						url: '/pages/index/index',
+						success: () => {
+							// 重新启动后立即显示感谢信息
+							setTimeout(() => {
+								uni.showModal({
+									title: '感谢使用',
+									content: '您可以关闭小程序了',
+									showCancel: false,
+									confirmText: '知道了'
+								});
+							}, 500);
+						}
+					});
+					
+				} catch (error) {
+					console.error('备用退出方案失败:', error);
+				}
+			},
+			
+			/**
+			 * 清理所有状态
+			 */
+			cleanupAllState() {
+				try {
+					// 清理界面状态
+					this.foodInputText = '';
+					this.currentContent = null;
+					this.clearError();
+					
+					// 重置手势相关数据
+					this.touchStartY = 0;
+					this.touchStartTime = 0;
+					
+					// 深度清理 ViewModel
+					if (this.viewModel) {
+						this.viewModel.deepCleanSessionData();
+					}
+					
+					// 清理本地存储中的临时数据
+					this.clearLocalTemporaryData();
+					
+					// 调用 App 级别的清理
+					const app = getApp();
+					if (app && app.clearUserState) {
+						app.clearUserState();
+					}
+					
+					console.log('所有状态已清理');
+				} catch (error) {
+					console.error('清理状态时发生错误:', error);
+				}
+			},
+			
+			/**
+			 * 清理本地临时数据
+			 */
+			clearLocalTemporaryData() {
+				try {
+					// 清理页面级别的临时数据
+					const tempKeys = [
+						'pageState',
+						'tempInput',
+						'lastError',
+						'gestureData',
+						'uiCache'
+					];
+					
+					tempKeys.forEach(key => {
+						try {
+							uni.removeStorageSync(key);
+						} catch (error) {
+							console.warn(`清理页面临时数据失败: ${key}`, error);
+						}
+					});
+					
+				} catch (error) {
+					console.error('清理本地临时数据时发生错误:', error);
 				}
 			},
 			
@@ -382,6 +545,37 @@
 			handleImageLoad() {
 				// 图片加载成功，可以添加一些处理逻辑
 				console.log('图片加载成功');
+			},
+			
+			/**
+			 * 处理触摸开始
+			 */
+			handleTouchStart(event) {
+				if (event.touches && event.touches.length > 0) {
+					this.touchStartY = event.touches[0].clientY;
+					this.touchStartTime = Date.now();
+				}
+			},
+			
+			/**
+			 * 处理触摸结束
+			 */
+			handleTouchEnd(event) {
+				if (event.changedTouches && event.changedTouches.length > 0) {
+					const touchEndY = event.changedTouches[0].clientY;
+					const touchEndTime = Date.now();
+					
+					// 计算滑动距离和时间
+					const deltaY = touchEndY - this.touchStartY;
+					const deltaTime = touchEndTime - this.touchStartTime;
+					
+					// 检查是否为向下滑动手势
+					// 条件：向下滑动超过100px，时间少于500ms
+					if (deltaY > 100 && deltaTime < 500) {
+						console.log('检测到向下滑动手势，触发退出');
+						this.handleExit();
+					}
+				}
 			}
 		}
 	}
@@ -610,5 +804,23 @@
 		font-size: 36rpx;
 		color: #2c3e50;
 		text-align: center;
+	}
+	
+	/* 手势提示样式 */
+	.gesture-hint {
+		position: fixed;
+		bottom: 20rpx;
+		left: 50%;
+		transform: translateX(-50%);
+		background-color: rgba(0, 0, 0, 0.6);
+		border-radius: 20rpx;
+		padding: 10rpx 20rpx;
+		z-index: 1000;
+	}
+	
+	.hint-text {
+		color: white;
+		font-size: 24rpx;
+		opacity: 0.8;
 	}
 </style>

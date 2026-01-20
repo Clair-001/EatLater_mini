@@ -101,4 +101,45 @@ export class ImageLibrary {
             '/static/images/fries_unappetizing.jpg'
         );
     }
+
+    /**
+     * 清理缓存
+     * 清理可能存在的临时缓存数据
+     */
+    clearCache() {
+        try {
+            console.log('清理图片库缓存');
+
+            // 清理可能存在的图片缓存
+            const cacheKeys = [
+                'imageLoadCache',
+                'lastSelectedImage',
+                'imageSelectionHistory',
+                'recentImages'
+            ];
+
+            cacheKeys.forEach(key => {
+                try {
+                    if (typeof uni !== 'undefined' && uni.removeStorageSync) {
+                        uni.removeStorageSync(key);
+                    }
+                } catch (error) {
+                    console.warn(`清理图片缓存失败: ${key}`, error);
+                }
+            });
+
+            console.log('图片库缓存清理完成');
+
+        } catch (error) {
+            console.error('清理图片库缓存时发生错误:', error);
+        }
+    }
+
+    /**
+     * 重置图片映射
+     */
+    resetMappings() {
+        this.imageMapping.clear();
+        this.initializeDefaultMappings();
+    }
 }
