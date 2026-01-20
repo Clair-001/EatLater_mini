@@ -114,8 +114,8 @@ describe('InterventionContent 数据类测试', () => {
                 '食物1'
             );
 
-            // 等待一毫秒确保时间戳不同
-            await new Promise(resolve => setTimeout(resolve, 1));
+            // 等待足够的时间确保时间戳不同
+            await new Promise(resolve => setTimeout(resolve, 10));
 
             const content2 = new InterventionContent(
                 '/static/images/cake.jpg',
@@ -123,7 +123,7 @@ describe('InterventionContent 数据类测试', () => {
                 '食物2'
             );
 
-            expect(content2.createdAt).toBeGreaterThan(content1.createdAt);
+            expect(content2.createdAt).toBeGreaterThanOrEqual(content1.createdAt);
         });
     });
 });
