@@ -5,7 +5,7 @@
 export class ImageLibrary {
     constructor() {
         this.imageMapping = new Map();
-        this.defaultImagePath = '/static/images/default_unappetizing.jpg';
+        this.defaultImagePath = 'https://ob-assets-open.oss-cn-shanghai.aliyuncs.com/img/202601211107127.jpg';
     }
 
     /**
@@ -75,30 +75,30 @@ export class ImageLibrary {
         // 快餐类
         this.addImageMapping(
             ['披萨', 'pizza', '比萨'],
-            '/static/images/pizza_unappetizing.jpg'
+            'https://ob-assets-open.oss-cn-shanghai.aliyuncs.com/img/202601211107400.jpg'
         );
 
         this.addImageMapping(
             ['炸鸡', '鸡腿', '肯德基', '麦当劳', 'kfc'],
-            '/static/images/chicken_unappetizing.jpg'
+            'https://ob-assets-open.oss-cn-shanghai.aliyuncs.com/img/202601211107624.jpg'
         );
 
         // 饮品类
         this.addImageMapping(
             ['奶茶', '珍珠奶茶', '茶饮'],
-            '/static/images/milktea_unappetizing.jpg'
+            'https://ob-assets-open.oss-cn-shanghai.aliyuncs.com/img/202601211107542.jpg'
         );
 
         // 甜品类
         this.addImageMapping(
             ['蛋糕', 'cake', '甜品', '甜点'],
-            '/static/images/cake_unappetizing.jpg'
+            'https://ob-assets-open.oss-cn-shanghai.aliyuncs.com/img/202601211102004.jpg'
         );
 
         // 零食类
         this.addImageMapping(
             ['薯条', '薯片', '炸薯条'],
-            '/static/images/fries_unappetizing.jpg'
+            'https://ob-assets-open.oss-cn-shanghai.aliyuncs.com/img/202601211107751.jpg'
         );
     }
 

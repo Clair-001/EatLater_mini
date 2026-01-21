@@ -119,12 +119,12 @@
 				try {
 					// 预加载默认图片
 					const defaultImages = [
-						'/static/images/default_unappetizing.jpg',
-						'/static/images/pizza_unappetizing.jpg',
-						'/static/images/chicken_unappetizing.jpg',
-						'/static/images/cake_unappetizing.jpg',
-						'/static/images/fries_unappetizing.jpg',
-						'/static/images/milktea_unappetizing.jpg'
+						'https://ob-assets-open.oss-cn-shanghai.aliyuncs.com/img/202601211107127.jpg',
+						'https://ob-assets-open.oss-cn-shanghai.aliyuncs.com/img/202601211107400.jpg',
+						'https://ob-assets-open.oss-cn-shanghai.aliyuncs.com/img/202601211107624.jpg',
+						'https://ob-assets-open.oss-cn-shanghai.aliyuncs.com/img/202601211102004.jpg',
+						'https://ob-assets-open.oss-cn-shanghai.aliyuncs.com/img/202601211107751.jpg',
+						'https://ob-assets-open.oss-cn-shanghai.aliyuncs.com/img/202601211107542.jpg'
 					]
 					
 					defaultImages.forEach(imagePath => {

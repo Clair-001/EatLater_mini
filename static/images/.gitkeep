@@ -2,7 +2,7 @@
 
 此目录用于存放反差视觉图片资源。
 
-## 图片命名规范
+## 图片命名规范（网络地址）
 
 - `pizza_unappetizing.jpg` - 披萨反差视觉图片
 - `chicken_unappetizing.jpg` - 炸鸡反差视觉图片  
@@ -17,3 +17,12 @@
 - 尺寸：建议 400x300 像素
 - 特征：冷色调、变质感、违和感
 - 合规：不包含血腥、呕吐、人体病变内容
+
+## 网络图片地址
+
+- 默认反差图片：https://ob-assets-open.oss-cn-shanghai.aliyuncs.com/img/202601211107127.jpg
+- 披萨反差图片：https://ob-assets-open.oss-cn-shanghai.aliyuncs.com/img/202601211107400.jpg
+- 炸鸡反差图片：https://ob-assets-open.oss-cn-shanghai.aliyuncs.com/img/202601211107624.jpg
+- 蛋糕反差图片：https://ob-assets-open.oss-cn-shanghai.aliyuncs.com/img/202601211102004.jpg
+- 薯条反差图片：https://ob-assets-open.oss-cn-shanghai.aliyuncs.com/img/202601211107751.jpg
+- 奶茶反差图片：https://ob-assets-open.oss-cn-shanghai.aliyuncs.com/img/202601211107542.jpg
