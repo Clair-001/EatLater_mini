@@ -159,6 +159,8 @@
 		flex-direction: column;
 		gap: 20rpx;
 		padding-bottom: 40rpx;
+		position: relative; /* 确保按钮在正确的层级 */
+		z-index: 200; /* 确保按钮在手势提示之上 */
 }
 .exit-button {
 		background-color: #27ae60;
@@ -168,6 +170,8 @@
 		padding: 30rpx;
 		font-size: 32rpx;
 		width: 100%;
+		cursor: pointer; /* 添加指针样式 */
+		touch-action: manipulation; /* 优化触摸响应 */
 }
 .exit-button:active {
 		background-color: #229954;
@@ -180,6 +184,8 @@
 		padding: 25rpx;
 		font-size: 28rpx;
 		width: 100%;
+		cursor: pointer; /* 添加指针样式 */
+		touch-action: manipulation; /* 优化触摸响应 */
 }
 .restart-button:active {
 		background-color: #7f8c8d;
@@ -203,13 +209,14 @@
 	/* 手势提示样式 */
 .gesture-hint {
 		position: fixed;
-		bottom: 20rpx;
+		bottom: 120rpx; /* 提高位置，避免覆盖按钮 */
 		left: 50%;
 		transform: translateX(-50%);
 		background-color: rgba(0, 0, 0, 0.6);
 		border-radius: 20rpx;
 		padding: 10rpx 20rpx;
-		z-index: 1000;
+		z-index: 100; /* 降低z-index，确保不会覆盖按钮 */
+		pointer-events: none; /* 确保不会阻止点击事件 */
 }
 .hint-text {
 		color: white;

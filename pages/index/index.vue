@@ -76,10 +76,10 @@
 
 			<!-- 退出按钮区域 -->
 			<view class="exit-section">
-				<button class="exit-button" @click="handleExit">
+				<button class="exit-button" @click="handleExit" @tap="handleExit">
 					好的，我再想想
 				</button>
-				<button class="restart-button" @click="handleRestart">
+				<button class="restart-button" @click="handleRestart" @tap="handleRestart">
 					重新选择
 				</button>
 			</view>
@@ -142,6 +142,87 @@
 		},
 		
 		methods: {
+			/**
+			 * 切换到主屏幕
+			 */
+			switchToMainScreen() {
+				console.log('切换到主屏幕');
+				this.currentUIState = 'mainScreen';
+				this.currentState = 'inputReady';
+				this.focusedCardId = null;
+				
+				// 添加用户反馈
+				uni.showToast({
+					title: '返回主屏幕',
+					icon: 'none',
+					duration: 1000
+				});
+			},
+			
+			/**
+			 * 切换到存档屏幕
+			 */
+			switchToArchiveScreen() {
+				console.log('切换到存档屏幕');
+				this.currentUIState = 'archiveScreen';
+				
+				// 加载会话存档
+				this.loadSessionArchive();
+				
+				// 添加用户反馈
+				uni.showToast({
+					title: '查看历史记录',
+					icon: 'none',
+					duration: 1000
+				});
+			},
+			
+			/**
+			 * 加载会话存档
+			 */
+			async loadSessionArchive() {
+				if (!this.viewModel) {
+					console.error('ViewModel 未初始化');
+					return;
+				}
+				
+				try {
+					// 获取会话存档卡片
+					const cards = await this.viewModel.getSessionCards();
+					this.sessionCards = cards || [];
+					
+					console.log('加载会话存档完成，卡片数量:', this.sessionCards.length);
+				} catch (error) {
+					console.error('加载会话存档失败:', error);
+					this.sessionCards = [];
+				}
+			},
+			
+			/**
+			 * 聚焦卡片
+			 */
+			async focusCard(cardId) {
+				console.log('聚焦卡片:', cardId);
+				
+				if (!this.viewModel) {
+					console.error('ViewModel 未初始化');
+					return;
+				}
+				
+				try {
+					// 设置聚焦的卡片ID
+					this.focusedCardId = cardId;
+					
+					// 获取卡片内容并显示
+					const cardContent = await this.viewModel.getCardContent(cardId);
+					if (cardContent) {
+						this.currentContent = cardContent;
+					}
+				} catch (error) {
+					console.error('聚焦卡片失败:', error);
+				}
+			},
+			
 			/**
 			 * 初始化 ViewModel
 			 */
@@ -317,6 +398,15 @@
 			 * 处理退出
 			 */
 			handleExit() {
+				console.log('用户点击退出按钮');
+				
+				// 添加用户反馈
+				uni.showToast({
+					title: '正在退出...',
+					icon: 'none',
+					duration: 1000
+				});
+				
 				if (!this.viewModel) {
 					console.error('ViewModel 未初始化');
 					return;
@@ -479,6 +569,15 @@
 			 * 处理重新开始
 			 */
 			handleRestart() {
+				console.log('用户点击重新选择按钮');
+				
+				// 添加用户反馈
+				uni.showToast({
+					title: '重新开始',
+					icon: 'none',
+					duration: 1000
+				});
+				
 				if (!this.viewModel) {
 					console.error('ViewModel 未初始化');
 					return;
@@ -492,6 +591,11 @@
 					
 					// 重置 ViewModel
 					this.viewModel.reset();
+					
+					// 强制更新界面状态
+					this.currentState = InterventionState.INPUT_READY;
+					
+					console.log('重新开始完成，当前状态:', this.currentState);
 					
 				} catch (error) {
 					console.error('处理重新开始时发生错误:', error);
@@ -551,6 +655,13 @@
 			 * 处理触摸开始
 			 */
 			handleTouchStart(event) {
+				// 检查触摸是否在按钮区域，如果是则不处理手势
+				const target = event.target;
+				if (target && (target.classList.contains('exit-button') || target.classList.contains('restart-button'))) {
+					console.log('触摸在按钮区域，跳过手势处理');
+					return;
+				}
+				
 				if (event.touches && event.touches.length > 0) {
 					this.touchStartY = event.touches[0].clientY;
 					this.touchStartTime = Date.now();
@@ -561,6 +672,13 @@
 			 * 处理触摸结束
 			 */
 			handleTouchEnd(event) {
+				// 检查触摸是否在按钮区域，如果是则不处理手势
+				const target = event.target;
+				if (target && (target.classList.contains('exit-button') || target.classList.contains('restart-button'))) {
+					console.log('触摸结束在按钮区域，跳过手势处理');
+					return;
+				}
+				
 				if (event.changedTouches && event.changedTouches.length > 0) {
 					const touchEndY = event.changedTouches[0].clientY;
 					const touchEndTime = Date.now();
@@ -760,6 +878,8 @@
 		flex-direction: column;
 		gap: 20rpx;
 		padding-bottom: 40rpx;
+		position: relative; /* 确保按钮在正确的层级 */
+		z-index: 200; /* 确保按钮在手势提示之上 */
 	}
 
 	.exit-button {
@@ -770,6 +890,8 @@
 		padding: 30rpx;
 		font-size: 32rpx;
 		width: 100%;
+		cursor: pointer; /* 添加指针样式 */
+		touch-action: manipulation; /* 优化触摸响应 */
 	}
 
 	.exit-button:active {
@@ -784,6 +906,8 @@
 		padding: 25rpx;
 		font-size: 28rpx;
 		width: 100%;
+		cursor: pointer; /* 添加指针样式 */
+		touch-action: manipulation; /* 优化触摸响应 */
 	}
 
 	.restart-button:active {
@@ -809,13 +933,14 @@
 	/* 手势提示样式 */
 	.gesture-hint {
 		position: fixed;
-		bottom: 20rpx;
+		bottom: 120rpx; /* 提高位置，避免覆盖按钮 */
 		left: 50%;
 		transform: translateX(-50%);
 		background-color: rgba(0, 0, 0, 0.6);
 		border-radius: 20rpx;
 		padding: 10rpx 20rpx;
-		z-index: 1000;
+		z-index: 100; /* 降低z-index，确保不会覆盖按钮 */
+		pointer-events: none; /* 确保不会阻止点击事件 */
 	}
 	
 	.hint-text {

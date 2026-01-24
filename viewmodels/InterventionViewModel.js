@@ -295,6 +295,11 @@ export class InterventionViewModel {
             // 准备下次使用
             this.prepareForNextUse();
 
+            // 确保状态正确转换到输入准备状态
+            this.transitionToState(InterventionState.INPUT_READY);
+
+            console.log('应用状态重置完成，当前状态:', this.getCurrentState());
+
         } catch (error) {
             this.handleError('重置失败', error);
         }
@@ -487,7 +492,7 @@ export class InterventionViewModel {
             // 预加载必要资源（如果需要）
             this.preloadEssentialResources();
 
-            console.log('应用已准备好下次使用');
+            console.log('应用已准备好下次使用，当前状态:', this.getCurrentState());
 
         } catch (error) {
             console.error('准备下次使用时发生错误:', error);
@@ -517,6 +522,14 @@ export class InterventionViewModel {
      * @param {string} newState - 新状态
      */
     transitionToState(newState) {
+        const currentState = this.stateManager.getCurrentState();
+
+        // 如果已经是目标状态，则不需要转换
+        if (currentState === newState) {
+            console.log(`已经处于目标状态: ${newState}`);
+            return true;
+        }
+
         const success = this.stateManager.transitionTo(newState);
         if (success) {
             this.emitEvent('stateChanged', {
@@ -524,8 +537,9 @@ export class InterventionViewModel {
                 newState: newState
             });
         } else {
-            console.warn(`无效的状态转换: ${this.stateManager.getCurrentState()} -> ${newState}`);
+            console.warn(`无效的状态转换: ${currentState} -> ${newState}`);
         }
+        return success;
     }
 
     /**

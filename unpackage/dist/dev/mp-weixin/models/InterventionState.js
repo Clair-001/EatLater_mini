@@ -1,4 +1,5 @@
 "use strict";
+const common_vendor = require("../common/vendor.js");
 const InterventionState = {
   // 加载中状态
   LOADING: "loading",
@@ -53,8 +54,9 @@ class StateManager {
    * 重置状态管理器
    */
   reset() {
-    this.currentState = InterventionState.LOADING;
-    this.stateHistory = [InterventionState.LOADING];
+    this.currentState = InterventionState.INPUT_READY;
+    this.stateHistory = [InterventionState.INPUT_READY];
+    common_vendor.index.__f__("log", "at models/InterventionState.js:74", "状态管理器已重置到 INPUT_READY 状态");
   }
 }
 exports.InterventionState = InterventionState;

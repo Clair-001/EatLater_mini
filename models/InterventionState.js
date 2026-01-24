@@ -69,7 +69,8 @@ export class StateManager {
      * 重置状态管理器
      */
     reset() {
-        this.currentState = InterventionState.LOADING;
-        this.stateHistory = [InterventionState.LOADING];
+        this.currentState = InterventionState.INPUT_READY;
+        this.stateHistory = [InterventionState.INPUT_READY];
+        console.log('状态管理器已重置到 INPUT_READY 状态');
     }
 }

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>按钮测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .exit-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .exit-button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .exit-button:hover {
+            background-color: #229954;
+        }
+
+        .restart-button {
+            background-color: #95a5a6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .restart-button:hover {
+            background-color: #7f8c8d;
+        }
+
+        .log {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f1f2f6;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .image-section {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .intervention-image {
+            max-width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .guidance-text {
+            text-align: center;
+            font-size: 18px;
+            color: #2c3e50;
+            margin: 20px 0;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>EatLater 按钮测试</h2>
+
+        <div class="image-section">
+            <img src="https://ob-assets-open.oss-cn-shanghai.aliyuncs.com/img/202601211107127.jpg" alt="干预图片"
+                class="intervention-image">
+        </div>
+
+        <div class="guidance-text">
+            先缓一缓，现在不急，晚点再决定
+        </div>
+
+        <div class="exit-section">
+            <button class="exit-button" onclick="handleExit()">
+                好的，我再想想
+            </button>
+            <button class="restart-button" onclick="handleRestart()">
+                重新选择
+            </button>
+        </div>
+
+        <div class="log" id="log">
+            <div>点击按钮查看响应...</div>
+        </div>
+    </div>
+
+    <script>
+        function log(message) {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function handleExit() {
+            log('用户点击了"好的，我再想想"按钮');
+            log('正在执行退出逻辑...');
+
+            // 模拟退出处理
+            setTimeout(() => {
+                log('退出处理完成');
+                alert('感谢使用 EatLater！');
+            }, 500);
+        }
+
+        function handleRestart() {
+            log('用户点击了"重新选择"按钮');
+            log('正在重置应用状态...');
+
+            // 模拟重新开始处理
+            setTimeout(() => {
+                log('应用状态已重置');
+                log('返回到输入界面');
+                alert('已重新开始，请重新输入食物');
+            }, 500);
+        }
+
+        // 页面加载完成
+        document.addEventListener('DOMContentLoaded', function () {
+            log('测试页面加载完成');
+            log('请点击按钮测试功能');
+        });
+    </script>
+</body>
+
+</html>

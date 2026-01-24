@@ -206,6 +206,8 @@ class InterventionViewModel {
       common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:290", "重置应用状态");
       this.deepCleanSessionData();
       this.prepareForNextUse();
+      this.transitionToState(models_InterventionState.InterventionState.INPUT_READY);
+      common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:301", "应用状态重置完成，当前状态:", this.getCurrentState());
     } catch (error) {
       this.handleError("重置失败", error);
     }
@@ -216,7 +218,7 @@ class InterventionViewModel {
    */
   clearSessionData() {
     try {
-      common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:309", "开始清理会话数据");
+      common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:314", "开始清理会话数据");
       this.currentContent = null;
       this.currentFoodInput = null;
       this.clearError();
@@ -225,9 +227,9 @@ class InterventionViewModel {
         this.stateManager.reset();
       }
       this.clearEventListenerData();
-      common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:331", "会话数据清理完成");
+      common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:336", "会话数据清理完成");
     } catch (error) {
-      common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:334", "清理会话数据时发生错误:", error);
+      common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:339", "清理会话数据时发生错误:", error);
     }
   }
   /**
@@ -248,14 +250,14 @@ class InterventionViewModel {
         try {
           if (typeof common_vendor.index !== "undefined" && common_vendor.index.removeStorageSync) {
             common_vendor.index.removeStorageSync(key);
-            common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:359", `已清理存储项: ${key}`);
+            common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:364", `已清理存储项: ${key}`);
           }
         } catch (error) {
-          common_vendor.index.__f__("warn", "at viewmodels/InterventionViewModel.js:362", `清理存储项失败: ${key}`, error);
+          common_vendor.index.__f__("warn", "at viewmodels/InterventionViewModel.js:367", `清理存储项失败: ${key}`, error);
         }
       });
     } catch (error) {
-      common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:367", "清理临时存储时发生错误:", error);
+      common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:372", "清理临时存储时发生错误:", error);
     }
   }
   /**
@@ -266,7 +268,7 @@ class InterventionViewModel {
       Object.keys(this.eventListeners).forEach((eventType) => {
       });
     } catch (error) {
-      common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:383", "清理事件监听器数据时发生错误:", error);
+      common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:388", "清理事件监听器数据时发生错误:", error);
     }
   }
   /**
@@ -275,7 +277,7 @@ class InterventionViewModel {
    */
   deepCleanSessionData() {
     try {
-      common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:393", "开始深度清理会话数据");
+      common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:398", "开始深度清理会话数据");
       this.clearSessionData();
       if (this.repository) {
         if (typeof this.repository.clearCache === "function") {
@@ -284,9 +286,9 @@ class InterventionViewModel {
       }
       this.removeAllEventListeners();
       this.clearAllTemporaryStorage();
-      common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:411", "深度清理完成");
+      common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:416", "深度清理完成");
     } catch (error) {
-      common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:414", "深度清理时发生错误:", error);
+      common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:419", "深度清理时发生错误:", error);
     }
   }
   /**
@@ -307,15 +309,15 @@ class InterventionViewModel {
           if (!persistentKeys.includes(key)) {
             try {
               common_vendor.index.removeStorageSync(key);
-              common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:441", `已清理存储项: ${key}`);
+              common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:446", `已清理存储项: ${key}`);
             } catch (error) {
-              common_vendor.index.__f__("warn", "at viewmodels/InterventionViewModel.js:443", `清理存储项失败: ${key}`, error);
+              common_vendor.index.__f__("warn", "at viewmodels/InterventionViewModel.js:448", `清理存储项失败: ${key}`, error);
             }
           }
         });
       }
     } catch (error) {
-      common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:450", "清理所有临时存储时发生错误:", error);
+      common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:455", "清理所有临时存储时发生错误:", error);
     }
   }
   /**
@@ -326,9 +328,9 @@ class InterventionViewModel {
       Object.keys(this.eventListeners).forEach((eventType) => {
         this.eventListeners[eventType] = [];
       });
-      common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:462", "所有事件监听器已清理");
+      common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:467", "所有事件监听器已清理");
     } catch (error) {
-      common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:464", "清理事件监听器时发生错误:", error);
+      common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:469", "清理事件监听器时发生错误:", error);
     }
   }
   /**
@@ -337,16 +339,16 @@ class InterventionViewModel {
    */
   prepareForNextUse() {
     try {
-      common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:474", "准备应用下次使用");
+      common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:479", "准备应用下次使用");
       this.clearSessionData();
       if (this.stateManager) {
         this.stateManager.reset();
       }
       this.transitionToState(models_InterventionState.InterventionState.INPUT_READY);
       this.preloadEssentialResources();
-      common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:490", "应用已准备好下次使用");
+      common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:495", "应用已准备好下次使用，当前状态:", this.getCurrentState());
     } catch (error) {
-      common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:493", "准备下次使用时发生错误:", error);
+      common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:498", "准备下次使用时发生错误:", error);
     }
   }
   /**
@@ -358,7 +360,7 @@ class InterventionViewModel {
         this.repository.getQuickSelectFoods();
       }
     } catch (error) {
-      common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:511", "预加载资源时发生错误:", error);
+      common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:516", "预加载资源时发生错误:", error);
     }
   }
   /**
@@ -366,6 +368,11 @@ class InterventionViewModel {
    * @param {string} newState - 新状态
    */
   transitionToState(newState) {
+    const currentState = this.stateManager.getCurrentState();
+    if (currentState === newState) {
+      common_vendor.index.__f__("log", "at viewmodels/InterventionViewModel.js:529", `已经处于目标状态: ${newState}`);
+      return true;
+    }
     const success = this.stateManager.transitionTo(newState);
     if (success) {
       this.emitEvent("stateChanged", {
@@ -373,8 +380,9 @@ class InterventionViewModel {
         newState
       });
     } else {
-      common_vendor.index.__f__("warn", "at viewmodels/InterventionViewModel.js:527", `无效的状态转换: ${this.stateManager.getCurrentState()} -> ${newState}`);
+      common_vendor.index.__f__("warn", "at viewmodels/InterventionViewModel.js:540", `无效的状态转换: ${currentState} -> ${newState}`);
     }
+    return success;
   }
   /**
    * 获取当前状态
@@ -431,7 +439,7 @@ class InterventionViewModel {
    * @param {Error} error - 错误对象
    */
   handleError(context, error) {
-    common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:593", `${context}:`, error);
+    common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:607", `${context}:`, error);
     this.setError(error.message || "发生未知错误");
   }
   /**
@@ -468,7 +476,7 @@ class InterventionViewModel {
         try {
           listener(data);
         } catch (error) {
-          common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:633", `事件监听器执行失败 (${eventType}):`, error);
+          common_vendor.index.__f__("error", "at viewmodels/InterventionViewModel.js:647", `事件监听器执行失败 (${eventType}):`, error);
         }
       });
     }

@@ -149,8 +149,14 @@ const _sfc_main = {
      * 处理退出
      */
     handleExit() {
+      common_vendor.index.__f__("log", "at pages/index/index.vue:320", "用户点击退出按钮");
+      common_vendor.index.showToast({
+        title: "正在退出...",
+        icon: "none",
+        duration: 1e3
+      });
       if (!this.viewModel) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:321", "ViewModel 未初始化");
+        common_vendor.index.__f__("error", "at pages/index/index.vue:330", "ViewModel 未初始化");
         return;
       }
       try {
@@ -160,7 +166,7 @@ const _sfc_main = {
         this.clearError();
         this.exitApplication();
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:338", "处理退出时发生错误:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:347", "处理退出时发生错误:", error);
         this.errorMessage = "退出时发生错误";
       }
     },
@@ -184,10 +190,10 @@ const _sfc_main = {
             if (typeof common_vendor.wx$1 !== "undefined" && common_vendor.wx$1.exitMiniProgram) {
               common_vendor.wx$1.exitMiniProgram({
                 success: () => {
-                  common_vendor.index.__f__("log", "at pages/index/index.vue:368", "小程序已关闭");
+                  common_vendor.index.__f__("log", "at pages/index/index.vue:377", "小程序已关闭");
                 },
                 fail: (error) => {
-                  common_vendor.index.__f__("warn", "at pages/index/index.vue:371", "关闭小程序失败，使用备用方案:", error);
+                  common_vendor.index.__f__("warn", "at pages/index/index.vue:380", "关闭小程序失败，使用备用方案:", error);
                   this.fallbackExit();
                 }
               });
@@ -197,7 +203,7 @@ const _sfc_main = {
           }
         }, 1e3);
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:382", "退出应用时发生错误:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:391", "退出应用时发生错误:", error);
         this.fallbackExit();
       }
     },
@@ -222,7 +228,7 @@ const _sfc_main = {
           }
         });
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:413", "备用退出方案失败:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:422", "备用退出方案失败:", error);
       }
     },
     /**
@@ -243,9 +249,9 @@ const _sfc_main = {
         if (app && app.clearUserState) {
           app.clearUserState();
         }
-        common_vendor.index.__f__("log", "at pages/index/index.vue:445", "所有状态已清理");
+        common_vendor.index.__f__("log", "at pages/index/index.vue:454", "所有状态已清理");
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:447", "清理状态时发生错误:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:456", "清理状态时发生错误:", error);
       }
     },
     /**
@@ -264,19 +270,25 @@ const _sfc_main = {
           try {
             common_vendor.index.removeStorageSync(key);
           } catch (error) {
-            common_vendor.index.__f__("warn", "at pages/index/index.vue:469", `清理页面临时数据失败: ${key}`, error);
+            common_vendor.index.__f__("warn", "at pages/index/index.vue:478", `清理页面临时数据失败: ${key}`, error);
           }
         });
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:474", "清理本地临时数据时发生错误:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:483", "清理本地临时数据时发生错误:", error);
       }
     },
     /**
      * 处理重新开始
      */
     handleRestart() {
+      common_vendor.index.__f__("log", "at pages/index/index.vue:491", "用户点击重新选择按钮");
+      common_vendor.index.showToast({
+        title: "重新开始",
+        icon: "none",
+        duration: 1e3
+      });
       if (!this.viewModel) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:483", "ViewModel 未初始化");
+        common_vendor.index.__f__("error", "at pages/index/index.vue:501", "ViewModel 未初始化");
         return;
       }
       try {
@@ -284,8 +296,10 @@ const _sfc_main = {
         this.currentContent = null;
         this.clearError();
         this.viewModel.reset();
+        this.currentState = models_InterventionState.InterventionState.INPUT_READY;
+        common_vendor.index.__f__("log", "at pages/index/index.vue:517", "重新开始完成，当前状态:", this.currentState);
       } catch (error) {
-        common_vendor.index.__f__("error", "at pages/index/index.vue:497", "处理重新开始时发生错误:", error);
+        common_vendor.index.__f__("error", "at pages/index/index.vue:520", "处理重新开始时发生错误:", error);
         this.errorMessage = "重新开始时发生错误";
         this.currentState = models_InterventionState.InterventionState.INPUT_READY;
       }
@@ -308,7 +322,7 @@ const _sfc_main = {
      * 处理图片加载错误
      */
     handleImageError(error) {
-      common_vendor.index.__f__("error", "at pages/index/index.vue:527", "图片加载失败:", error);
+      common_vendor.index.__f__("error", "at pages/index/index.vue:550", "图片加载失败:", error);
       if (this.viewModel && this.currentContent) {
         const defaultImage = "/static/images/default_unappetizing.jpg";
         this.currentContent.imageResource = defaultImage;
@@ -318,12 +332,17 @@ const _sfc_main = {
      * 处理图片加载成功
      */
     handleImageLoad() {
-      common_vendor.index.__f__("log", "at pages/index/index.vue:547", "图片加载成功");
+      common_vendor.index.__f__("log", "at pages/index/index.vue:570", "图片加载成功");
     },
     /**
      * 处理触摸开始
      */
     handleTouchStart(event) {
+      const target = event.target;
+      if (target && (target.classList.contains("exit-button") || target.classList.contains("restart-button"))) {
+        common_vendor.index.__f__("log", "at pages/index/index.vue:580", "触摸在按钮区域，跳过手势处理");
+        return;
+      }
       if (event.touches && event.touches.length > 0) {
         this.touchStartY = event.touches[0].clientY;
         this.touchStartTime = Date.now();
@@ -333,13 +352,18 @@ const _sfc_main = {
      * 处理触摸结束
      */
     handleTouchEnd(event) {
+      const target = event.target;
+      if (target && (target.classList.contains("exit-button") || target.classList.contains("restart-button"))) {
+        common_vendor.index.__f__("log", "at pages/index/index.vue:597", "触摸结束在按钮区域，跳过手势处理");
+        return;
+      }
       if (event.changedTouches && event.changedTouches.length > 0) {
         const touchEndY = event.changedTouches[0].clientY;
         const touchEndTime = Date.now();
         const deltaY = touchEndY - this.touchStartY;
         const deltaTime = touchEndTime - this.touchStartTime;
         if (deltaY > 100 && deltaTime < 500) {
-          common_vendor.index.__f__("log", "at pages/index/index.vue:575", "检测到向下滑动手势，触发退出");
+          common_vendor.index.__f__("log", "at pages/index/index.vue:612", "检测到向下滑动手势，触发退出");
           this.handleExit();
         }
       }
@@ -377,15 +401,17 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
     p: common_vendor.t($data.currentContent.guidanceText)
   } : {}, {
     q: common_vendor.o((...args) => $options.handleExit && $options.handleExit(...args)),
-    r: common_vendor.o((...args) => $options.handleRestart && $options.handleRestart(...args)),
-    s: common_vendor.o((...args) => $options.handleTouchStart && $options.handleTouchStart(...args)),
-    t: common_vendor.o((...args) => $options.handleTouchEnd && $options.handleTouchEnd(...args))
+    r: common_vendor.o((...args) => $options.handleExit && $options.handleExit(...args)),
+    s: common_vendor.o((...args) => $options.handleRestart && $options.handleRestart(...args)),
+    t: common_vendor.o((...args) => $options.handleRestart && $options.handleRestart(...args)),
+    v: common_vendor.o((...args) => $options.handleTouchStart && $options.handleTouchStart(...args)),
+    w: common_vendor.o((...args) => $options.handleTouchEnd && $options.handleTouchEnd(...args))
   }) : $data.currentState === "completed" ? {
-    w: common_vendor.o((...args) => $options.handleRestart && $options.handleRestart(...args))
+    y: common_vendor.o((...args) => $options.handleRestart && $options.handleRestart(...args))
   } : {}, {
     b: $data.currentState === "inputReady",
     j: $data.currentState === "contentDisplayed",
-    v: $data.currentState === "completed"
+    x: $data.currentState === "completed"
   });
 }
 const MiniProgramPage = /* @__PURE__ */ common_vendor._export_sfc(_sfc_main, [["render", _sfc_render]]);
