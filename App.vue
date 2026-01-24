@@ -10,6 +10,9 @@
 		onLaunch: function() {
 			console.log('EatLater App Launch')
 			
+			// 确保启动时为干净状态
+			this.ensureCleanStartup()
+			
 			// 初始化应用
 			this.initializeApp()
 			
@@ -69,6 +72,9 @@
 						this.clearUserState()
 						console.log('长时间后台，已清理用户状态')
 					}
+					
+					// 每次恢复都执行会话重置
+					this.handleSessionReset();
 					
 					// 快速恢复到主界面
 					this.quickRestoreToMain()
@@ -232,6 +238,273 @@
 			},
 			
 			/**
+			 * 清理会话存档数据
+			 * 专门用于清理内存中的会话存档
+			 */
+			clearSessionArchiveData() {
+				try {
+					console.log('开始清理会话存档数据');
+					
+					// 清理会话存档相关的存储项
+					const sessionArchiveKeys = [
+						'sessionCards',
+						'archiveCardHistory',
+						'cardManagerState',
+						'sessionArchiveStats',
+						'tempCardData',
+						'cardAnimationState',
+						'focusedCardId',
+						'cardStackLayout'
+					];
+					
+					sessionArchiveKeys.forEach(key => {
+						try {
+							uni.removeStorageSync(key);
+							console.log(`已清理会话存档项: ${key}`);
+						} catch (error) {
+							console.warn(`清理会话存档项失败: ${key}`, error);
+						}
+					});
+					
+					// 通知全局事件，让相关组件清理内存数据
+					uni.$emit('clearSessionArchive');
+					
+					console.log('会话存档数据清理完成');
+					
+				} catch (error) {
+					console.error('清理会话存档数据失败:', error);
+				}
+			},
+			
+			/**
+			 * 深度清理所有数据
+			 * 用于应用卸载时的完全清理
+			 */
+			deepCleanAllData() {
+				try {
+					console.log('开始深度清理所有数据');
+					
+					// 清理用户状态
+					this.clearUserState();
+					
+					// 清理会话存档数据
+					this.clearSessionArchiveData();
+					
+					// 获取所有存储键并清理非持久化数据
+					if (typeof uni !== 'undefined' && uni.getStorageInfoSync) {
+						try {
+							const storageInfo = uni.getStorageInfoSync();
+							const allKeys = storageInfo.keys || [];
+							
+							// 定义需要保留的持久化数据键
+							const persistentKeys = [
+								'userPreferences',
+								'appVersion',
+								'installTime',
+								'userSettings'
+							];
+							
+							// 清理所有非持久化数据
+							allKeys.forEach(key => {
+								if (!persistentKeys.includes(key)) {
+									try {
+										uni.removeStorageSync(key);
+										console.log(`深度清理存储项: ${key}`);
+									} catch (error) {
+										console.warn(`深度清理存储项失败: ${key}`, error);
+									}
+								}
+							});
+							
+						} catch (error) {
+							console.warn('获取存储信息失败:', error);
+						}
+					}
+					
+					// 通知所有页面进行深度清理
+					uni.$emit('deepCleanAllData');
+					
+					console.log('深度清理完成');
+					
+				} catch (error) {
+					console.error('深度清理失败:', error);
+				}
+			},
+			
+			/**
+			 * 通知页面清理数据
+			 * 发送全局事件通知页面组件清理会话数据
+			 */
+			notifyPagesCleanup() {
+				try {
+					console.log('通知页面清理数据');
+					
+					// 发送清理事件
+					uni.$emit('appExitCleanup', {
+						timestamp: Date.now(),
+						reason: 'appExit'
+					});
+					
+					// 延迟发送深度清理事件，确保页面有时间响应
+					setTimeout(() => {
+						uni.$emit('deepCleanSessionData', {
+							timestamp: Date.now(),
+							reason: 'appExit'
+						});
+					}, 100);
+					
+				} catch (error) {
+					console.error('通知页面清理失败:', error);
+				}
+			},
+			
+			/**
+			 * 处理会话重置
+			 * 在新会话开始时清理旧数据，重置存档计数器和状态
+			 */
+			handleSessionReset() {
+				try {
+					console.log('开始会话重置');
+					
+					// 清理会话存档数据
+					this.clearSessionArchiveData();
+					
+					// 重置会话相关的全局状态
+					this.resetSessionGlobalState();
+					
+					// 通知页面进行会话重置
+					this.notifyPagesSessionReset();
+					
+					console.log('会话重置完成');
+					
+				} catch (error) {
+					console.error('会话重置失败:', error);
+				}
+			},
+			
+			/**
+			 * 重置会话相关的全局状态
+			 */
+			resetSessionGlobalState() {
+				try {
+					// 重置会话计数器
+					this.globalData.sessionStartTime = Date.now();
+					this.globalData.sessionCardCount = 0;
+					this.globalData.sessionInteractionCount = 0;
+					
+					// 清理会话相关的临时状态
+					this.globalData.currentSessionId = this.generateSessionId();
+					this.globalData.lastSessionCleanup = Date.now();
+					
+					console.log('会话全局状态已重置，新会话ID:', this.globalData.currentSessionId);
+					
+				} catch (error) {
+					console.error('重置会话全局状态失败:', error);
+				}
+			},
+			
+			/**
+			 * 生成会话ID
+			 * @returns {string} 新的会话ID
+			 */
+			generateSessionId() {
+				try {
+					const timestamp = Date.now();
+					const random = Math.random().toString(36).substr(2, 9);
+					return `session_${timestamp}_${random}`;
+				} catch (error) {
+					console.error('生成会话ID失败:', error);
+					return `session_${Date.now()}`;
+				}
+			},
+			
+			/**
+			 * 通知页面进行会话重置
+			 */
+			notifyPagesSessionReset() {
+				try {
+					console.log('通知页面进行会话重置');
+					
+					// 发送会话重置事件
+					uni.$emit('sessionReset', {
+						timestamp: Date.now(),
+						sessionId: this.globalData.currentSessionId,
+						reason: 'newSession'
+					});
+					
+					// 延迟发送确保干净状态事件
+					setTimeout(() => {
+						uni.$emit('ensureCleanState', {
+							timestamp: Date.now(),
+							sessionId: this.globalData.currentSessionId
+						});
+					}, 50);
+					
+				} catch (error) {
+					console.error('通知页面会话重置失败:', error);
+				}
+			},
+			
+			/**
+			 * 确保每次启动都是干净状态
+			 */
+			ensureCleanStartup() {
+				try {
+					console.log('确保应用启动时为干净状态');
+					
+					// 执行深度清理
+					this.deepCleanAllData();
+					
+					// 重置全局数据到初始状态
+					this.globalData = {
+						userState: null,
+						lastActiveTime: Date.now(),
+						isFirstLaunch: true,
+						sessionStartTime: Date.now(),
+						sessionCardCount: 0,
+						sessionInteractionCount: 0,
+						currentSessionId: this.generateSessionId(),
+						lastSessionCleanup: Date.now()
+					};
+					
+					// 通知页面确保干净状态
+					uni.$emit('ensureCleanState', {
+						timestamp: Date.now(),
+						sessionId: this.globalData.currentSessionId,
+						reason: 'startup'
+					});
+					
+					console.log('应用启动状态已确保干净');
+					
+				} catch (error) {
+					console.error('确保干净启动失败:', error);
+				}
+			},
+			
+			/**
+			 * 处理应用卸载
+			 * 在应用完全卸载时清理所有数据
+			 */
+			handleAppUnload() {
+				try {
+					console.log('处理应用卸载，开始深度清理');
+					
+					// 执行深度清理
+					this.deepCleanAllData();
+					
+					// 清理全局数据
+					this.globalData.userState = null;
+					this.globalData.lastActiveTime = Date.now();
+					this.globalData.isFirstLaunch = true;
+					
+					console.log('应用卸载处理完成');
+					
+				} catch (error) {
+					console.error('应用卸载处理失败:', error);
+				}
+			},
+			
+			/**
 			 * 处理应用退出
 			 * 提供给页面调用的退出处理方法
 			 */
@@ -239,12 +512,18 @@
 				try {
 					console.log('处理应用退出');
 					
+					// 清理所有会话存档数据
+					this.clearSessionArchiveData();
+					
 					// 清理所有状态
 					this.clearUserState();
 					
 					// 清理全局数据
 					this.globalData.userState = null;
 					this.globalData.lastActiveTime = Date.now();
+					
+					// 通知页面清理会话数据
+					this.notifyPagesCleanup();
 					
 					// 尝试关闭小程序
 					if (typeof wx !== 'undefined' && wx.exitMiniProgram) {

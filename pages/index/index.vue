@@ -196,6 +196,11 @@
 				// 错误信息
 				errorMessage: '',
 				
+				// 会话管理相关
+				currentSessionId: null,
+				sessionStartTime: null,
+				lastCleanStateTime: null,
+				
 				// 手势相关
 				touchStartX: 0,
 				touchStartY: 0,
@@ -584,6 +589,55 @@
 					// 重新加载会话存档
 					this.loadSessionArchive();
 				});
+				
+				// 监听App级别的清理事件
+				this.setupAppLevelEventListeners();
+			},
+			
+			/**
+			 * 设置App级别的事件监听器
+			 */
+			setupAppLevelEventListeners() {
+				try {
+					// 监听应用退出清理事件
+					uni.$on('appExitCleanup', (data) => {
+						console.log('收到应用退出清理事件:', data);
+						this.handleAppExitCleanup();
+					});
+					
+					// 监听会话存档清理事件
+					uni.$on('clearSessionArchive', () => {
+						console.log('收到会话存档清理事件');
+						this.handleSessionArchiveCleanup();
+					});
+					
+					// 监听深度清理事件
+					uni.$on('deepCleanAllData', () => {
+						console.log('收到深度清理事件');
+						this.handleDeepCleanup();
+					});
+					
+					// 监听深度清理会话数据事件
+					uni.$on('deepCleanSessionData', (data) => {
+						console.log('收到深度清理会话数据事件:', data);
+						this.handleDeepSessionCleanup();
+					});
+					
+					// 监听会话重置事件
+					uni.$on('sessionReset', (data) => {
+						console.log('收到会话重置事件:', data);
+						this.handleSessionReset(data);
+					});
+					
+					// 监听确保干净状态事件
+					uni.$on('ensureCleanState', (data) => {
+						console.log('收到确保干净状态事件:', data);
+						this.handleEnsureCleanState(data);
+					});
+					
+				} catch (error) {
+					console.error('设置App级别事件监听器失败:', error);
+				}
 			},
 			
 			/**
@@ -604,9 +658,227 @@
 						this.viewModel = null;
 					}
 					
+					// 移除App级别的事件监听器
+					this.removeAppLevelEventListeners();
+					
 					console.log('ViewModel 清理完成');
 				} catch (error) {
 					console.error('清理 ViewModel 时发生错误:', error);
+				}
+			},
+			
+			/**
+			 * 移除App级别的事件监听器
+			 */
+			removeAppLevelEventListeners() {
+				try {
+					uni.$off('appExitCleanup');
+					uni.$off('clearSessionArchive');
+					uni.$off('deepCleanAllData');
+					uni.$off('deepCleanSessionData');
+					uni.$off('sessionReset');
+					uni.$off('ensureCleanState');
+					console.log('App级别事件监听器已移除');
+				} catch (error) {
+					console.error('移除App级别事件监听器失败:', error);
+				}
+			},
+			
+			/**
+			 * 处理应用退出清理
+			 */
+			handleAppExitCleanup() {
+				try {
+					console.log('处理应用退出清理');
+					
+					// 清理当前内容和状态
+					this.currentContent = null;
+					this.currentState = 'inputReady';
+					this.currentUIState = 'mainScreen';
+					this.errorMessage = '';
+					this.foodInputText = '';
+					this.focusedCardId = null;
+					this.sessionCards = [];
+					
+					// 清理ViewModel中的会话数据
+					if (this.viewModel) {
+						this.viewModel.clearSessionData();
+					}
+					
+					console.log('应用退出清理完成');
+					
+				} catch (error) {
+					console.error('处理应用退出清理失败:', error);
+				}
+			},
+			
+			/**
+			 * 处理会话存档清理
+			 */
+			handleSessionArchiveCleanup() {
+				try {
+					console.log('处理会话存档清理');
+					
+					// 清理会话存档相关数据
+					this.sessionCards = [];
+					this.focusedCardId = null;
+					
+					// 清理ViewModel中的存档数据
+					if (this.viewModel) {
+						this.viewModel.clearAllArchives();
+					}
+					
+					// 如果当前在存档屏幕，切换回主屏幕
+					if (this.currentUIState === 'archiveScreen') {
+						this.switchToMainScreen();
+					}
+					
+					console.log('会话存档清理完成');
+					
+				} catch (error) {
+					console.error('处理会话存档清理失败:', error);
+				}
+			},
+			
+			/**
+			 * 处理深度清理
+			 */
+			handleDeepCleanup() {
+				try {
+					console.log('处理深度清理');
+					
+					// 执行应用退出清理
+					this.handleAppExitCleanup();
+					
+					// 执行会话存档清理
+					this.handleSessionArchiveCleanup();
+					
+					// 清理本地临时数据
+					this.clearLocalTemporaryData();
+					
+					// 深度清理ViewModel
+					if (this.viewModel) {
+						this.viewModel.deepCleanSessionData();
+					}
+					
+					console.log('深度清理完成');
+					
+				} catch (error) {
+					console.error('处理深度清理失败:', error);
+				}
+			},
+			
+			/**
+			 * 处理深度会话清理
+			 */
+			handleDeepSessionCleanup() {
+				try {
+					console.log('处理深度会话清理');
+					
+					// 重置所有页面状态
+					this.currentContent = null;
+					this.currentState = 'inputReady';
+					this.currentUIState = 'mainScreen';
+					this.errorMessage = '';
+					this.foodInputText = '';
+					this.focusedCardId = null;
+					this.sessionCards = [];
+					
+					// 重置手势相关状态
+					this.touchStartY = 0;
+					this.touchStartX = 0;
+					this.isSwipeDown = false;
+					this.isSwipeHorizontal = false;
+					this.cardStackTouchStart = null;
+					
+					// 清理定时器
+					if (this.scrollTimeout) {
+						clearTimeout(this.scrollTimeout);
+						this.scrollTimeout = null;
+					}
+					
+					// 深度清理ViewModel
+					if (this.viewModel) {
+						this.viewModel.deepCleanSessionData();
+						this.viewModel.reset();
+					}
+					
+					console.log('深度会话清理完成');
+					
+				} catch (error) {
+					console.error('处理深度会话清理失败:', error);
+				}
+			},
+			
+			/**
+			 * 处理会话重置
+			 * @param {Object} data - 会话重置数据
+			 */
+			handleSessionReset(data) {
+				try {
+					console.log('处理会话重置:', data);
+					
+					// 清理当前会话的所有数据
+					this.handleDeepSessionCleanup();
+					
+					// 重新初始化ViewModel（如果需要）
+					if (this.viewModel) {
+						this.viewModel.reset();
+						
+						// 重新设置为输入准备状态
+						this.currentState = 'inputReady';
+						this.currentUIState = 'mainScreen';
+					}
+					
+					// 记录新会话信息
+					this.currentSessionId = data.sessionId;
+					this.sessionStartTime = data.timestamp;
+					
+					console.log('会话重置完成，新会话ID:', this.currentSessionId);
+					
+				} catch (error) {
+					console.error('处理会话重置失败:', error);
+				}
+			},
+			
+			/**
+			 * 处理确保干净状态
+			 * @param {Object} data - 状态数据
+			 */
+			handleEnsureCleanState(data) {
+				try {
+					console.log('处理确保干净状态:', data);
+					
+					// 执行完整的状态重置
+					this.handleDeepSessionCleanup();
+					
+					// 确保ViewModel处于干净状态
+					if (this.viewModel) {
+						// 深度清理并重置
+						this.viewModel.deepCleanSessionData();
+						this.viewModel.prepareForNextUse();
+					}
+					
+					// 确保页面状态为初始状态
+					this.currentContent = null;
+					this.currentState = 'inputReady';
+					this.currentUIState = 'mainScreen';
+					this.errorMessage = '';
+					this.foodInputText = '';
+					this.focusedCardId = null;
+					this.sessionCards = [];
+					
+					// 清理本地临时数据
+					this.clearLocalTemporaryData();
+					
+					// 记录状态确保信息
+					this.currentSessionId = data.sessionId;
+					this.lastCleanStateTime = data.timestamp;
+					
+					console.log('干净状态已确保，会话ID:', this.currentSessionId);
+					
+				} catch (error) {
+					console.error('处理确保干净状态失败:', error);
 				}
 			},
 			
