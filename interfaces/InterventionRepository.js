@@ -1,6 +1,8 @@
 import { ImageLibrary } from './ImageLibrary.js';
 import { TextLibrary } from './TextLibrary.js';
 import { InterventionContent } from '../models/InterventionContent.js';
+import { SessionArchiveStorage } from './SessionArchiveStorage.js';
+import { ArchiveCard } from '../models/ArchiveCard.js';
 
 /**
  * 数据仓库接口
@@ -11,6 +13,9 @@ export class InterventionRepository {
         this.imageLibrary = new ImageLibrary();
         this.textLibrary = new TextLibrary();
         this.quickSelectFoods = [];
+
+        // 会话存档存储
+        this.sessionArchive = new SessionArchiveStorage();
 
         this.initialize();
     }
@@ -172,6 +177,11 @@ export class InterventionRepository {
             // 清理缓存
             this.clearCache();
 
+            // 清理会话存档
+            if (this.sessionArchive) {
+                this.sessionArchive.clearSessionCards();
+            }
+
             // 重置到初始状态
             this.reset();
 
@@ -179,6 +189,276 @@ export class InterventionRepository {
 
         } catch (error) {
             console.error('深度清理数据仓库时发生错误:', error);
+        }
+    }
+
+    // ==================== 存档功能 ====================
+
+    /**
+     * 存档干预内容
+     * @param {InterventionContent} interventionContent - 干预内容
+     * @returns {Promise<ArchiveCard|null>} 存档卡片或null
+     */
+    async archiveContent(interventionContent) {
+        try {
+            if (!interventionContent) {
+                console.warn('存档内容需要提供干预内容');
+                return null;
+            }
+
+            console.log('开始存档干预内容:', interventionContent.foodName);
+
+            // 创建存档卡片
+            const archiveCard = new ArchiveCard(interventionContent);
+
+            // 添加到会话存档
+            const success = this.sessionArchive.addSessionCard(archiveCard);
+
+            if (success) {
+                console.log('干预内容存档成功:', archiveCard.id);
+                return archiveCard;
+            } else {
+                console.warn('添加存档卡片到会话存储失败');
+                return null;
+            }
+
+        } catch (error) {
+            console.error('存档干预内容失败:', error);
+            return null;
+        }
+    }
+
+    /**
+     * 获取存档历史
+     * @param {number} limit - 限制数量，默认为10
+     * @returns {Promise<Array<ArchiveCard>>} 存档历史数组
+     */
+    async getArchiveHistory(limit = 10) {
+        try {
+            if (!this.sessionArchive) {
+                console.warn('会话存档未初始化');
+                return [];
+            }
+
+            const cards = this.sessionArchive.getRecentCards(limit);
+            console.log(`获取存档历史: ${cards.length} 张卡片`);
+            return cards;
+
+        } catch (error) {
+            console.error('获取存档历史失败:', error);
+            return [];
+        }
+    }
+
+    /**
+     * 根据ID获取存档卡片
+     * @param {string} cardId - 卡片ID
+     * @returns {Promise<ArchiveCard|null>} 存档卡片或null
+     */
+    async getArchiveCardById(cardId) {
+        try {
+            if (!cardId) {
+                return null;
+            }
+
+            if (!this.sessionArchive) {
+                console.warn('会话存档未初始化');
+                return null;
+            }
+
+            const card = this.sessionArchive.getCardById(cardId);
+            if (card) {
+                console.log(`找到存档卡片: ${cardId}`);
+            } else {
+                console.warn(`未找到存档卡片: ${cardId}`);
+            }
+
+            return card;
+
+        } catch (error) {
+            console.error(`获取存档卡片失败 (${cardId}):`, error);
+            return null;
+        }
+    }
+
+    /**
+     * 获取所有会话存档卡片
+     * @returns {Promise<Array<ArchiveCard>>} 所有会话存档卡片
+     */
+    async getAllSessionCards() {
+        try {
+            if (!this.sessionArchive) {
+                console.warn('会话存档未初始化');
+                return [];
+            }
+
+            const cards = this.sessionArchive.getSessionCards();
+            console.log(`获取所有会话存档卡片: ${cards.length} 张`);
+            return cards;
+
+        } catch (error) {
+            console.error('获取所有会话存档卡片失败:', error);
+            return [];
+        }
+    }
+
+    /**
+     * 清除所有存档
+     * @returns {Promise<boolean>} 清除是否成功
+     */
+    async clearAllArchives() {
+        try {
+            if (!this.sessionArchive) {
+                console.warn('会话存档未初始化');
+                return false;
+            }
+
+            this.sessionArchive.clearSessionCards();
+            console.log('所有存档已清除');
+            return true;
+
+        } catch (error) {
+            console.error('清除所有存档失败:', error);
+            return false;
+        }
+    }
+
+    /**
+     * 获取存档统计信息
+     * @returns {Promise<Object>} 存档统计信息
+     */
+    async getArchiveStats() {
+        try {
+            if (!this.sessionArchive) {
+                return {
+                    totalCards: 0,
+                    sessionDuration: 0,
+                    memoryUsage: 0,
+                    utilizationRate: '0%'
+                };
+            }
+
+            const usage = this.sessionArchive.getSessionUsage();
+            const stats = this.sessionArchive.getSessionStats();
+
+            return {
+                ...usage,
+                ...stats
+            };
+
+        } catch (error) {
+            console.error('获取存档统计信息失败:', error);
+            return {
+                totalCards: 0,
+                sessionDuration: 0,
+                memoryUsage: 0,
+                utilizationRate: '0%'
+            };
+        }
+    }
+
+    /**
+     * 检查存档容量
+     * @returns {Promise<Object>} 存档容量信息
+     */
+    async getArchiveCapacity() {
+        try {
+            if (!this.sessionArchive) {
+                return {
+                    current: 0,
+                    max: 0,
+                    available: 0,
+                    isFull: false,
+                    isEmpty: true
+                };
+            }
+
+            return this.sessionArchive.getCapacityInfo();
+
+        } catch (error) {
+            console.error('获取存档容量信息失败:', error);
+            return {
+                current: 0,
+                max: 0,
+                available: 0,
+                isFull: false,
+                isEmpty: true
+            };
+        }
+    }
+
+    /**
+     * 为存档卡片生成干预内容
+     * @param {ArchiveCard} archiveCard - 存档卡片
+     * @returns {Promise<InterventionContent|null>} 重新生成的干预内容
+     */
+    async generateContentFromArchive(archiveCard) {
+        try {
+            if (!archiveCard) {
+                console.warn('生成内容需要提供存档卡片');
+                return null;
+            }
+
+            console.log('从存档卡片生成干预内容:', archiveCard.foodName);
+
+            // 从存档卡片重新创建干预内容
+            const content = new InterventionContent(
+                archiveCard.imageResource,
+                archiveCard.guidanceText,
+                archiveCard.foodName
+            );
+
+            // 保持原始时间戳
+            if (archiveCard.timestamp) {
+                content.createdAt = archiveCard.timestamp;
+            }
+
+            return content;
+
+        } catch (error) {
+            console.error('从存档卡片生成干预内容失败:', error);
+            return null;
+        }
+    }
+
+    /**
+     * 检查是否可以存档更多内容
+     * @returns {Promise<boolean>} 是否可以存档更多内容
+     */
+    async canArchiveMore() {
+        try {
+            if (!this.sessionArchive) {
+                return false;
+            }
+
+            return !this.sessionArchive.isFull();
+
+        } catch (error) {
+            console.error('检查存档容量失败:', error);
+            return false;
+        }
+    }
+
+    /**
+     * 获取存档摘要信息
+     * @returns {Promise<Array<Object>>} 存档摘要数组
+     */
+    async getArchiveSummary() {
+        try {
+            const cards = await this.getAllSessionCards();
+
+            return cards.map(card => ({
+                id: card.id,
+                foodName: card.foodName,
+                timestamp: card.timestamp,
+                formattedTime: card.getFormattedTime(),
+                hasImage: !!card.imageResource,
+                hasText: !!card.guidanceText
+            }));
+
+        } catch (error) {
+            console.error('获取存档摘要失败:', error);
+            return [];
         }
     }
 }
